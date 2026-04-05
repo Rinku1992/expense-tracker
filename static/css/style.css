@@ -473,6 +473,77 @@ body {
     color: var(--white);
 }
 
+/* ===== FILTER DROPDOWNS ===== */
+.filter-select {
+    padding: 8px 32px 8px 12px;
+    border: 1.5px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--slate-700);
+    background: var(--white);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748B' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 01.753 1.659l-4.796 5.48a1 1 0 01-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: all 0.2s;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--green-500);
+    box-shadow: 0 0 0 3px rgba(11, 159, 111, 0.1);
+}
+
+/* ===== FINALIZE BUTTON ===== */
+.btn-finalize {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-finalize.draft {
+    background: var(--amber-50);
+    color: #B45309;
+    border: 1px solid #FCD34D;
+}
+
+.btn-finalize.draft:hover {
+    background: var(--green-500);
+    color: var(--white);
+    border-color: var(--green-500);
+}
+
+.btn-finalize.finalized {
+    background: var(--green-50);
+    color: var(--green-600);
+    border: 1px solid var(--green-100);
+}
+
+.btn-finalize.finalized:hover {
+    background: var(--red-50);
+    color: var(--red-500);
+    border-color: #FECACA;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.draft { background: #F59E0B; }
+.status-dot.finalized { background: var(--green-500); }
+
 /* ===== INFO BOXES ===== */
 .info-box {
     background: var(--slate-50);

@@ -4,8 +4,11 @@ let categoryPieChart = null;
 let allCategories = { credit: [], debit: [] };
 let currentModalData = null;
 let currentModalType = null;
+let allData = []; // unfiltered data for reference
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
 const CHART_COLORS = [
     '#0B9F6F', '#3B82F6', '#EF4444', '#F59E0B', '#8B5CF6',
     '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1',
@@ -13,34 +16,80 @@ const CHART_COLORS = [
 ];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load categories for editing
     try {
         const catResp = await fetch('/api/categories');
         allCategories = await catResp.json();
     } catch (e) {}
+
+    await loadFilters();
     loadDashboard();
 });
 
-// Close category dropdowns when clicking outside
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.cat-edit-wrapper')) {
         document.querySelectorAll('.cat-dropdown').forEach(d => d.remove());
     }
 });
 
-async function loadDashboard() {
+async function loadFilters() {
     try {
-        const response = await fetch('/api/monthly-summary');
+        const resp = await fetch('/api/available-periods');
+        const data = await resp.json();
+
+        const yearSelect = document.getElementById('filterYear');
+        data.years.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            yearSelect.appendChild(opt);
+        });
+
+        const monthSelect = document.getElementById('filterMonth');
+        data.months.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = MONTH_FULL[m - 1];
+            monthSelect.appendChild(opt);
+        });
+    } catch (e) {}
+}
+
+function applyFilters() {
+    loadDashboard();
+}
+
+function getFilterParams() {
+    const year = document.getElementById('filterYear').value;
+    const month = document.getElementById('filterMonth').value;
+    let params = '';
+    if (year) params += `year=${year}&`;
+    if (month) params += `month=${month}&`;
+
+    // Update export button
+    const exportBtn = document.getElementById('exportAllBtn');
+    exportBtn.href = `/export?${params}`.replace(/&$/, '');
+
+    return params ? `?${params.replace(/&$/, '')}` : '';
+}
+
+async function loadDashboard() {
+    const params = getFilterParams();
+
+    try {
+        const response = await fetch(`/api/monthly-summary${params}`);
         const data = await response.json();
 
         document.getElementById('loading').classList.add('d-none');
 
         if (data.length === 0) {
             document.getElementById('emptyState').classList.remove('d-none');
+            document.getElementById('dashboardContent').classList.add('d-none');
             return;
         }
 
+        document.getElementById('emptyState').classList.add('d-none');
         document.getElementById('dashboardContent').classList.remove('d-none');
+        allData = data;
         renderOverview(data);
         renderMonthlyChart(data);
         renderBalanceChart(data);
@@ -64,12 +113,11 @@ function renderOverview(data) {
     const netBalance = totalCredit - totalDebit;
     const creditCount = data.reduce((s, d) => s + (d.credit_count || 0), 0);
     const debitCount = data.reduce((s, d) => s + (d.debit_count || 0), 0);
-    const totalTxns = creditCount + debitCount;
 
     document.getElementById('totalCredit').textContent = fmt(totalCredit);
     document.getElementById('totalDebit').textContent = fmt(totalDebit);
     document.getElementById('netBalance').textContent = fmt(netBalance);
-    document.getElementById('totalTransactions').textContent = totalTxns.toLocaleString('en-IN');
+    document.getElementById('totalTransactions').textContent = (creditCount + debitCount).toLocaleString('en-IN');
     document.getElementById('creditCount').textContent = `${creditCount} transactions`;
     document.getElementById('debitCount').textContent = `${debitCount} transactions`;
 }
@@ -85,20 +133,12 @@ function renderMonthlyChart(data) {
             labels,
             datasets: [
                 {
-                    label: 'Credit',
-                    data: data.map(d => d.credit),
-                    backgroundColor: '#0B9F6F',
-                    borderRadius: 6,
-                    borderSkipped: false,
-                    barPercentage: 0.7,
+                    label: 'Credit', data: data.map(d => d.credit),
+                    backgroundColor: '#0B9F6F', borderRadius: 6, borderSkipped: false, barPercentage: 0.7,
                 },
                 {
-                    label: 'Debit',
-                    data: data.map(d => d.debit),
-                    backgroundColor: '#EF4444',
-                    borderRadius: 6,
-                    borderSkipped: false,
-                    barPercentage: 0.7,
+                    label: 'Debit', data: data.map(d => d.debit),
+                    backgroundColor: '#EF4444', borderRadius: 6, borderSkipped: false, barPercentage: 0.7,
                 },
             ],
         },
@@ -167,11 +207,15 @@ function renderMonthlyCards(data) {
     data.slice().reverse().forEach(d => {
         const name = `${MONTH_NAMES[d.month - 1]} ${d.year}`;
         const bal = d.credit - d.debit;
+        const isFinalized = d.status === 'finalized';
         const el = document.createElement('div');
         el.innerHTML = `
-            <div class="month-card">
+            <div class="month-card" id="month-card-${d.year}-${d.month}">
                 <div class="month-header">
-                    <h6>${name}</h6>
+                    <h6>
+                        <span class="status-dot ${d.status}"></span>
+                        ${name}
+                    </h6>
                     <span class="badge-balance ${bal >= 0 ? 'badge-positive' : 'badge-negative'}">
                         ${bal >= 0 ? '+' : ''}${fmt(bal)}
                     </span>
@@ -189,11 +233,46 @@ function renderMonthlyCards(data) {
                         </span>
                         <span class="value debit-val" onclick="showDetails(${d.year}, ${d.month}, 'debit')">${fmt(d.debit)}</span>
                     </div>
+                    <div style="text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--slate-100);">
+                        ${isFinalized
+                            ? `<button class="btn-finalize finalized" onclick="toggleFinalize(${d.year}, ${d.month}, true)">
+                                   <i class="bi bi-check-circle-fill"></i> Finalized
+                               </button>`
+                            : `<button class="btn-finalize draft" onclick="toggleFinalize(${d.year}, ${d.month}, false)">
+                                   <i class="bi bi-lock"></i> Finalize Month
+                               </button>`
+                        }
+                    </div>
                 </div>
             </div>
         `;
         container.appendChild(el);
     });
+}
+
+async function toggleFinalize(year, month, isCurrentlyFinalized) {
+    const action = isCurrentlyFinalized ? 'unfinalize' : 'finalize';
+    const monthName = `${MONTH_NAMES[month - 1]} ${year}`;
+
+    if (!isCurrentlyFinalized) {
+        if (!confirm(`Finalize ${monthName}? This will lock the month from edits and re-uploads until you unfinalize.`)) return;
+    }
+
+    try {
+        const resp = await fetch(`/api/monthly-report/${year}/${month}/${action}`, { method: 'POST' });
+        const result = await resp.json();
+        if (result.success) {
+            showToast(isCurrentlyFinalized
+                ? `${monthName} unfinalized. You can now edit and re-upload.`
+                : `${monthName} finalized successfully.`
+            );
+            loadDashboard(); // refresh cards
+        } else {
+            showToast(result.error || 'Failed to update', 'error');
+        }
+    } catch (e) {
+        showToast('Failed to update month status', 'error');
+    }
 }
 
 async function showDetails(year, month, txnType) {
@@ -216,10 +295,9 @@ async function showDetails(year, month, txnType) {
         search.value = '';
         search.oninput = () => {
             const q = search.value.toLowerCase();
-            const filtered = data.transactions.filter(t =>
+            renderTransactionsTable(data.transactions.filter(t =>
                 t.description.toLowerCase().includes(q) || t.category.toLowerCase().includes(q)
-            );
-            renderTransactionsTable(filtered);
+            ));
         };
 
         new bootstrap.Modal(document.getElementById('detailsModal')).show();
@@ -290,7 +368,6 @@ function renderTransactionsTable(transactions) {
 
     transactions.forEach(t => {
         const row = document.createElement('tr');
-        const cats = currentModalType === 'credit' ? allCategories.credit : allCategories.debit;
         row.innerHTML = `
             <td style="white-space: nowrap;">${new Date(t.date).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})}</td>
             <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${t.description}">${t.description}</td>
@@ -308,7 +385,6 @@ function renderTransactionsTable(transactions) {
 }
 
 function openCategoryDropdown(badge, txnType) {
-    // Remove any existing dropdowns
     document.querySelectorAll('.cat-dropdown').forEach(d => d.remove());
 
     const wrapper = badge.closest('.cat-edit-wrapper');
@@ -339,27 +415,20 @@ function openCategoryDropdown(badge, txnType) {
                     badge.innerHTML = `${cat} <i class="bi bi-pencil-fill"></i>`;
                     showToast(`Category updated to "${cat}"`);
 
-                    // Update the transaction in currentModalData
                     if (currentModalData) {
                         const txn = currentModalData.transactions.find(t => t.id == txnId);
                         if (txn) {
-                            // Recalculate category summary
                             currentModalData.category_summary[currentCat] -= txn.amount;
-                            if (currentModalData.category_summary[currentCat] <= 0) {
-                                delete currentModalData.category_summary[currentCat];
-                            }
-                            if (!currentModalData.category_summary[cat]) {
-                                currentModalData.category_summary[cat] = 0;
-                            }
+                            if (currentModalData.category_summary[currentCat] <= 0) delete currentModalData.category_summary[currentCat];
+                            if (!currentModalData.category_summary[cat]) currentModalData.category_summary[cat] = 0;
                             currentModalData.category_summary[cat] += txn.amount;
                             txn.category = cat;
-
                             renderCategoryPie(currentModalData.category_summary);
                             renderCategoryBreakdown(currentModalData.category_summary, currentModalData.total);
                         }
                     }
                 } else {
-                    showToast('Failed to update category', 'error');
+                    showToast(result.error || 'Failed to update category', 'error');
                 }
             } catch (e) {
                 showToast('Failed to update category', 'error');
