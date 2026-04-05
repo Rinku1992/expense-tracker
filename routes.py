@@ -53,20 +53,31 @@ def upload():
         for txn in transactions:
             months_in_file.add((txn['date'].year, txn['date'].month))
 
-        # Check for finalized months
-        finalized_months = []
+        # Separate finalized vs uploadable months
+        finalized_months = set()
+        uploadable_months = set()
         for year, month in months_in_file:
             report = MonthlyReport.query.filter_by(year=year, month=month, status='finalized').first()
             if report:
-                finalized_months.append(f"{_month_name(month)} {year}")
+                finalized_months.add((year, month))
+            else:
+                uploadable_months.add((year, month))
 
+        # Filter out transactions belonging to finalized months
         if finalized_months:
-            flash(f'Cannot upload: {", ".join(finalized_months)} already finalized. Unfinalize first to re-upload.', 'error')
+            transactions = [
+                txn for txn in transactions
+                if (txn['date'].year, txn['date'].month) not in finalized_months
+            ]
+
+        if not transactions:
+            skipped = ', '.join(f"{_month_name(m)} {y}" for y, m in sorted(finalized_months))
+            flash(f'All months in the file are already finalized ({skipped}). Unfinalize to re-upload.', 'error')
             return redirect(url_for('main.index'))
 
-        # Delete existing transactions for these months (prevents duplicates)
+        # Delete existing transactions for uploadable months only (prevents duplicates)
         replaced_count = 0
-        for year, month in months_in_file:
+        for year, month in uploadable_months:
             existing = Transaction.query.filter(
                 extract('year', Transaction.date) == year,
                 extract('month', Transaction.date) == month,
@@ -88,8 +99,8 @@ def upload():
             )
             db.session.add(record)
 
-        # Create/update monthly reports as draft
-        for year, month in months_in_file:
+        # Create/update monthly reports as draft for uploaded months
+        for year, month in uploadable_months:
             report = MonthlyReport.query.filter_by(year=year, month=month).first()
             if not report:
                 report = MonthlyReport(year=year, month=month, status='draft')
@@ -103,6 +114,9 @@ def upload():
         msg = f'Successfully uploaded {len(transactions)} transactions.'
         if replaced_count > 0:
             msg += f' Replaced {replaced_count} existing transactions.'
+        if finalized_months:
+            skipped = ', '.join(f"{_month_name(m)} {y}" for y, m in sorted(finalized_months))
+            msg += f' Skipped finalized months: {skipped}.'
         flash(msg, 'success')
 
     except ValueError as e:
