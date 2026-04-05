@@ -26,55 +26,69 @@ CATEGORY_KEYWORDS = {
     },
     'debit': {
         'Supplier & Vendor': [
-            'textile', 'agency', 'fabrics', 'fabric', 'trader', 'enterprise', 'industries',
+            # Full & truncated: fabric→fabri, embroidery→embroid, textile→textil
+            'textil', 'textile', 'agency', 'fabri', 'fabric', 'fabrics',
+            'trader', 'enterprise', 'industries', 'industr',
             'dori', 'pate', 'shiv textile', 'supplier', 'vendor', 'wholesale', 'merchant',
-            'manufacturing', 'mills', 'exports', 'imports', 'garment', 'cloth',
-            'embroid', 'stitch', 'thread', 'lace', 'button', 'zip',
+            'manufacturing', 'mills', 'exports', 'imports', 'garment', 'garm', 'cloth',
+            'embroid', 'embroide', 'stitch', 'thread', 'lace', 'button', 'zip',
+            'dyeing', 'printing', 'tailor', 'weav', 'knit', 'yarn', 'silk',
+            'cotton', 'polyest', 'nylon', 'satin', 'chiffon', 'georgette',
+            'dupatta', 'saree', 'sari', 'kurti', 'suit',
         ],
         'Logistics & Transport': [
-            'uber', 'ola', 'cab', 'taxi', 'petr', 'petrol', 'diesel', 'fuel',
-            'transport', 'courier', 'freight', 'shipping', 'delivery', 'delhivery',
-            'bluedart', 'dtdc', 'fedex', 'cargo', 'logistics', 'travel',
-            'flight', 'train', 'irctc', 'hotel', 'booking',
-        ],
-        'Business Payment': [
-            'vyapar', 'payment', 'business',
-        ],
-        'Membership & Fees': [
-            'cmai', 'association', 'membership', 'federation', 'chamber', 'guild',
+            # Full & truncated: petrol→petr/petro, transport→transp, delivery→deliv
+            'uber', 'ola', 'cab', 'taxi', 'petr', 'petro', 'petrol', 'diesel', 'fuel',
+            'transport', 'transp', 'courier', 'freight', 'shipping', 'ship',
+            'delivery', 'deliv', 'delhivery', 'ecom', 'ecomm',
+            'bluedart', 'dtdc', 'fedex', 'cargo', 'logistics', 'logist',
+            'travel', 'flight', 'train', 'irctc', 'hotel', 'booking',
+            'box', 'pack', 'parcel', 'dispatch', 'pickup',
+            'porter', 'dunzo', 'rapido', 'auto',
         ],
         'Salary & Staff': [
-            'salary', 'wages', 'staff', 'employee', 'pf', 'esic', 'gratuity',
+            # Full & truncated: salary→salar/sal (checked via starts-with logic below)
+            'salar', 'salary', 'wages', 'staff', 'employee', 'employe',
+            'pf', 'esic', 'gratuity', 'bonus', 'incentive', 'stipend',
+        ],
+        'Membership & Fees': [
+            'cmai', 'association', 'associ', 'membership', 'member',
+            'federation', 'chamber', 'guild', 'registr',
         ],
         'Rent & Property': [
-            'rent', 'lease', 'property', 'housing', 'maintenance',
+            'rent', 'lease', 'property', 'housing', 'mainten', 'maintenance',
         ],
         'Utilities': [
-            'electricity', 'water', 'gas', 'bill', 'broadband', 'internet',
-            'phone', 'mobile', 'recharge', 'airtel', 'jio', 'bsnl',
+            'electricity', 'electri', 'water', 'gas', 'broadband', 'internet',
+            'phone', 'mobile', 'recharge', 'airtel', 'jio', 'bsnl', 'wifi',
         ],
         'Tax & Compliance': [
             'gst', 'tax', 'tds', 'compliance', 'govt', 'government', 'income tax',
             'customs', 'duty', 'cess',
         ],
         'Bank Charges': [
-            'charges', 'fee', 'commission', 'penalty', 'bank charge', 'service charge',
-            'sms alert', 'debit card', 'annual fee',
+            'bank charge', 'service charge', 'sms alert', 'debit card', 'annual fee',
+            'charges', 'commission', 'penalty',
+        ],
+        'Business Payment': [
+            'vyapar', 'business',
         ],
         'EMI & Loans': [
-            'emi', 'loan', 'mortgage', 'installment',
+            'emi', 'loan', 'mortgage', 'installment', 'instal',
         ],
         'Insurance': [
-            'insurance', 'lic', 'policy', 'premium',
+            'insurance', 'insura', 'lic', 'policy', 'premium',
         ],
         'Food & Dining': [
             'swiggy', 'zomato', 'restaurant', 'food', 'dining', 'cafe', 'coffee',
+            'dominos', 'pizza', 'burger', 'mcdonald', 'kfc', 'chai',
         ],
         'Shopping': [
             'amazon', 'flipkart', 'myntra', 'shopping', 'store', 'mall',
+            'meesho', 'ajio',
         ],
         'ATM Withdrawal': [
-            'atm', 'withdrawal', 'cash',
+            'atm', 'withdrawal', 'cash withdrawal',
         ],
     },
 }
@@ -92,15 +106,20 @@ def _extract_payee_info(description):
     parts_combined = desc.lower()
 
     # UPI format: TO TRANSFER-UPI/DR/{txn_id}/{PAYEE}/{BANK}/{upi_handle}/{keyword}--
+    # Sometimes: UPI/DR/{txn_id}/{PAYEE}/{BANK}/{phone_or_handle}/{actual_keyword}--
     if 'upi/' in parts_combined:
         segments = desc.split('/')
         payee = ''
         keyword = ''
+        extra = ''
         if len(segments) >= 4:
             payee = segments[3].strip()
         if len(segments) >= 6:
             keyword = segments[5].strip().split('--')[0].strip()
-        return f"{payee} {keyword}".strip()
+        if len(segments) >= 7:
+            extra = segments[6].strip().split('--')[0].strip()
+        # Combine all meaningful parts (payee name + upi handle/keyword + extra)
+        return f"{payee} {keyword} {extra}".strip()
 
     # Cheque clearing: TO CLEARING-Chq {no} Sess {n} {PAYEE_NAME} {account}--{chq}
     if 'clearing' in parts_combined and 'chq' in parts_combined:
