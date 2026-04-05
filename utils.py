@@ -26,30 +26,60 @@ CATEGORY_KEYWORDS = {
     },
     'debit': {
         'Supplier & Vendor': [
-            # Full & truncated: fabric→fabri, embroidery→embroid, textile→textil
-            'textil', 'textile', 'agency', 'fabri', 'fabric', 'fabrics',
-            'trader', 'enterprise', 'industries', 'industr',
-            'dori', 'pate', 'shiv textile', 'supplier', 'vendor', 'wholesale', 'merchant',
-            'manufacturing', 'mills', 'exports', 'imports', 'garment', 'garm', 'cloth',
-            'embroid', 'embroide', 'stitch', 'thread', 'lace', 'button', 'zip',
-            'dyeing', 'printing', 'tailor', 'weav', 'knit', 'yarn', 'silk',
+            # Fabric & textile (full + truncated)
+            'textil', 'textile', 'fabri', 'fabric', 'fabrics', 'khadi',
+            # Embroidery & handwork
+            'embroid', 'embroide', 'embro', 'handw', 'handwork', 'blockprint',
+            # Thread, lace, elastic, dori, accessories
+            'threa', 'thread', 'lace', 'elast', 'elastic', 'dori',
+            'button', 'zip', 'beads', 'bead', 'mirro', 'mirror',
+            'hange', 'hanger', 'label', 'tag',
+            'kaj', 'hook', 'buckle', 'sequin',
+            # Pattern, cutting, printing, stitching
+            'patte', 'pattern', 'cuttin', 'cutting', 'print',
+            'stitch', 'tailor',
+            # Yarn, raw materials
+            'dyeing', 'weav', 'knit', 'yarn', 'silk',
             'cotton', 'polyest', 'nylon', 'satin', 'chiffon', 'georgette',
-            'dupatta', 'saree', 'sari', 'kurti', 'suit',
+            # Garments
+            'garment', 'garm', 'cloth', 'dupatta', 'saree', 'sari', 'kurti', 'suit',
+            # Business entities
+            'agency', 'trader', 'enterprise', 'enterpr', 'industries', 'industr',
+            'supplier', 'vendor', 'wholesale', 'merchant',
+            'manufacturing', 'mills', 'exports', 'imports',
+            # Vendor names from your data
+            'dori', 'pate', 'shiv textile', 'saras cr', 'overseasex', 'overseas',
+            'goyal fa', 'patels f', 'natural ', 'shivi en', 'anvi pri',
+            'khadi gr', 'arhant', 'vardhman',
+            # Advance payments to vendors
+            'advan', 'advanc', 'advance',
+            # Size labels
+            'size',
         ],
         'Logistics & Transport': [
-            # Full & truncated: petrol→petr/petro, transport→transp, delivery→deliv
-            'uber', 'ola', 'cab', 'taxi', 'petr', 'petro', 'petrol', 'diesel', 'fuel',
-            'transport', 'transp', 'courier', 'freight', 'shipping', 'ship',
+            # Cab & ride (full + truncated)
+            'uber', 'ola', 'cab', 'taxi', 'bike',
+            # Fuel
+            'petr', 'petro', 'petrol', 'diesel', 'fuel',
+            # Courier (full + truncated)
+            'couri', 'courie', 'courier',
+            # Transport & shipping
+            'transport', 'transp', 'freight', 'shipping', 'ship',
             'delivery', 'deliv', 'delhivery', 'ecom', 'ecomm',
             'bluedart', 'dtdc', 'fedex', 'cargo', 'logistics', 'logist',
-            'travel', 'flight', 'train', 'irctc', 'hotel', 'booking',
+            # Packaging
             'box', 'pack', 'parcel', 'dispatch', 'pickup',
-            'porter', 'dunzo', 'rapido', 'auto',
+            # Travel & booking
+            'travel', 'flight', 'train', 'irctc', 'hotel', 'booking',
+            'makemytr', 'makemytrip', 'goibibo', 'airbi', 'airbnb',
+            # Ride apps
+            'porter', 'dunzo', 'rapido',
         ],
         'Salary & Staff': [
-            # Full & truncated: salary→salar/sal (checked via starts-with logic below)
-            'salar', 'salary', 'wages', 'staff', 'employee', 'employe',
-            'pf', 'esic', 'gratuity', 'bonus', 'incentive', 'stipend',
+            # Full + truncated: salary→salar→sal
+            'salar', 'salary', '/sal--',
+            'wages', 'staff', 'employee', 'employe',
+            'pf', 'esic', 'gratuity', 'incentive', 'stipend',
         ],
         'Membership & Fees': [
             'cmai', 'association', 'associ', 'membership', 'member',
@@ -68,7 +98,7 @@ CATEGORY_KEYWORDS = {
         ],
         'Bank Charges': [
             'bank charge', 'service charge', 'sms alert', 'debit card', 'annual fee',
-            'charges', 'commission', 'penalty',
+            'a/c keeping', 'keeping chg', 'charges', 'commission', 'penalty',
         ],
         'Business Payment': [
             'vyapar', 'business',
@@ -82,10 +112,11 @@ CATEGORY_KEYWORDS = {
         'Food & Dining': [
             'swiggy', 'zomato', 'restaurant', 'food', 'dining', 'cafe', 'coffee',
             'dominos', 'pizza', 'burger', 'mcdonald', 'kfc', 'chai',
+            'khana', 'break', 'nesco', 'blue tok',
         ],
-        'Shopping': [
+        'Shopping & Gifts': [
             'amazon', 'flipkart', 'myntra', 'shopping', 'store', 'mall',
-            'meesho', 'ajio',
+            'meesho', 'ajio', 'gifts', 'gift',
         ],
         'ATM Withdrawal': [
             'atm', 'withdrawal', 'cash withdrawal',
