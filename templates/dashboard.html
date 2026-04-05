@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Neeru Takshak Expense Tracker{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+    <div>
+        <h1>Dashboard</h1>
+        <div class="subtitle">Your financial overview at a glance</div>
+    </div>
+    <a href="{{ url_for('main.export') }}" class="btn-outline-green">
+        <i class="bi bi-download"></i> Export All
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Loading -->
+<div id="loading" class="loading-wrap">
+    <div class="spinner"></div>
+    <p style="color: var(--slate-500);">Loading your financial data...</p>
+</div>
+
+<!-- Empty State -->
+<div id="emptyState" class="d-none">
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+        <h4>No transactions yet</h4>
+        <p>Upload a bank statement to start tracking your expenses</p>
+        <a href="{{ url_for('main.index') }}" class="btn-primary-green">
+            <i class="bi bi-cloud-arrow-up"></i> Upload Statement
+        </a>
+    </div>
+</div>
+
+<div id="dashboardContent" class="d-none">
+    <!-- Stat Cards -->
+    <div class="stat-grid" id="overviewCards">
+        <div class="stat-card credit">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-arrow-down-circle-fill"></i></div>
+            </div>
+            <div class="stat-label">Total Credit</div>
+            <div class="stat-value" id="totalCredit">0</div>
+            <div class="stat-badge positive" id="creditCount">0 transactions</div>
+        </div>
+        <div class="stat-card debit">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-arrow-up-circle-fill"></i></div>
+            </div>
+            <div class="stat-label">Total Debit</div>
+            <div class="stat-value" id="totalDebit">0</div>
+            <div class="stat-badge negative" id="debitCount">0 transactions</div>
+        </div>
+        <div class="stat-card balance">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+            </div>
+            <div class="stat-label">Net Balance</div>
+            <div class="stat-value" id="netBalance">0</div>
+        </div>
+        <div class="stat-card transactions">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-receipt"></i></div>
+            </div>
+            <div class="stat-label">Total Transactions</div>
+            <div class="stat-value" id="totalTransactions">0</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+        <div class="panel">
+            <div class="panel-header">
+                <h3><i class="bi bi-bar-chart"></i> Monthly Credit vs Debit</h3>
+            </div>
+            <div class="panel-body">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="panel-header">
+                <h3><i class="bi bi-graph-up-arrow"></i> Balance Trend</h3>
+            </div>
+            <div class="panel-body">
+                <canvas id="balanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Breakdown -->
+    <div class="section-head">
+        <div>
+            <h3><i class="bi bi-calendar3"></i> Monthly Breakdown</h3>
+            <div class="section-desc">Click on Credit or Debit to drill down into transactions</div>
+        </div>
+    </div>
+    <div class="month-grid" id="monthlyCards"></div>
+</div>
+
+<!-- Drill-down Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="bi bi-list-columns-reverse"></i> Transaction Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4 g-4">
+                    <div class="col-md-5">
+                        <canvas id="categoryPieChart"></canvas>
+                    </div>
+                    <div class="col-md-7">
+                        <div id="categoryBreakdown"></div>
+                    </div>
+                </div>
+                <div class="search-box mb-3">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" id="searchTransactions" placeholder="Search transactions by description or category...">
+                </div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table-clean" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsBody"></tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <a href="#" id="exportLink" class="btn-outline-green" style="font-size: 0.82rem;">
+                        <i class="bi bi-download"></i> Export These
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

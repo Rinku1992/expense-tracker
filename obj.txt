@@ -1,0 +1,37 @@
+ Build a full-stack Expense Tracker web application using Flask (Python backend) with the following      
+  requirements:                                                                                              
+  ## Core Features                                                                                        
+  1. **Excel Upload** - Users can upload bank statement Excel files (.xlsx/.csv). Parse and store the
+  transaction data (date, description, amount, type: credit/debit).
+
+  2. **Visual Dashboard** - A main dashboard showing:
+     - Monthly summary cards for Credit (income) and Debit (expenses) totals
+     - Bar/line charts comparing credit vs debit per month
+     - Overall balance overview
+
+  3. **Drill-Down Views** - Clicking on a Credit or Debit card for any month opens a detailed breakdown   
+  showing:
+     - All individual transactions for that category
+     - Source/category grouping (e.g., salary, reimbursements for credit; food, travel, subscriptions for 
+  debit)
+     - Pie chart showing category-wise distribution
+
+  ## Additional Features
+  - Category auto-detection from transaction descriptions
+  - Date range filters
+  - Search and filter transactions
+  - Export filtered data back to Excel
+  - Responsive design for mobile/desktop
+
+  ## Tech Stack
+  - **Backend:** Flask, SQLite, Pandas (for Excel parsing)
+  - **Frontend:** HTML, CSS (Bootstrap), JavaScript (Chart.js for visualizations)
+  - **Testing:** pytest, pytest-flask
+
+  ## Approach
+  - Build one file at a time
+  - Start with a plan listing all files and their purpose
+  - Test locally first, keep it deployable later
+  - Use clean project structure with templates, static files, and modular routes
+
+  ---

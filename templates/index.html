@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Upload - Neeru Takshak Expense Tracker{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+    <div>
+        <h1>Upload Statement</h1>
+        <div class="subtitle">Import your bank statement to track expenses</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-body" style="padding: 32px;">
+                <form action="{{ url_for('main.upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="upload-zone" id="dropZone">
+                        <div class="upload-icon">
+                            <i class="bi bi-file-earmark-spreadsheet"></i>
+                        </div>
+                        <h5>Drag & drop your file here</h5>
+                        <p>or click to browse from your computer</p>
+                        <p style="font-size: 0.78rem; color: var(--slate-400);">Supports .xlsx, .xls, .csv</p>
+                        <input type="file" name="file" id="fileInput" accept=".xlsx,.xls,.csv" class="d-none">
+                        <p id="fileName" class="d-none" style="color: var(--green-500); font-weight: 600; font-size: 1rem; margin-top: 12px;"></p>
+                    </div>
+
+                    <button type="submit" class="btn-primary-green w-100 mt-4" id="uploadBtn" disabled>
+                        <i class="bi bi-upload"></i> Upload & Process
+                    </button>
+                </form>
+
+                <div class="row mt-4 g-3">
+                    <div class="col-md-6">
+                        <div class="info-box h-100">
+                            <h6><i class="bi bi-file-earmark-check"></i> Supported Formats</h6>
+                            <ul class="list-unstyled mb-0">
+                                <li><i class="bi bi-check2" style="color: var(--green-500);"></i> Excel files (.xlsx, .xls)</li>
+                                <li><i class="bi bi-check2" style="color: var(--green-500);"></i> CSV files (.csv)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-box h-100">
+                            <h6><i class="bi bi-table"></i> Expected Columns</h6>
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Txn Date</strong> / Value Date</li>
+                                <li><strong>Description</strong> - Narration</li>
+                                <li><strong>Debit</strong> & <strong>Credit</strong> amounts</li>
+                                <li style="color: var(--slate-400); font-size: 0.8rem;">Ref No., Branch, Balance (optional)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            showFile(e.dataTransfer.files[0].name);
+        }
+    });
+    fileInput.addEventListener('change', () => { if (fileInput.files.length) showFile(fileInput.files[0].name); });
+
+    function showFile(name) {
+        fileName.innerHTML = '<i class="bi bi-file-earmark-check me-1"></i>' + name;
+        fileName.classList.remove('d-none');
+        uploadBtn.disabled = false;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+databases:
+  - name: expense-tracker-db
+    plan: free
+    databaseName: expense_tracker
+
+services:
+  - type: web
+    name: neeru-takshak-expense-tracker
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: expense-tracker-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: RENDER
+        value: "true"
+      - key: PYTHON_VERSION
+        value: "3.11.6"

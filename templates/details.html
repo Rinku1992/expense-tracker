@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Details - Neeru Takshak Expense Tracker{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+    <div>
+        <h1>Transaction Details</h1>
+        <div class="subtitle">Drill down from the dashboard to see details</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="empty-state">
+    <div class="empty-icon"><i class="bi bi-bar-chart-line"></i></div>
+    <h4>View from Dashboard</h4>
+    <p>Click on Credit or Debit in any monthly card to see detailed transactions</p>
+    <a href="{{ url_for('main.dashboard') }}" class="btn-primary-green">
+        <i class="bi bi-arrow-left"></i> Go to Dashboard
+    </a>
+</div>
+{% endblock %}
