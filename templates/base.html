@@ -46,7 +46,13 @@
             </ul>
         </nav>
         <div class="sidebar-footer">
-            Neeru Takshak &copy; 2026
+            <div style="margin-bottom: 8px; color: var(--slate-400); font-size: 0.78rem;">
+                <i class="bi bi-person-circle"></i> {{ session.get('user_email', '') }}
+            </div>
+            <a href="{{ url_for('main.logout') }}" style="color: var(--slate-400); text-decoration: none; font-size: 0.8rem;">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+            <div style="margin-top: 8px;">Neeru Takshak &copy; 2026</div>
         </div>
     </aside>
 

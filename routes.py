@@ -1,29 +1,73 @@
 import os
 import uuid
+import functools
 from io import BytesIO
 from datetime import datetime
 from collections import defaultdict
 
 import pandas as pd
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file, current_app, session
 from sqlalchemy import extract, func
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import db, Transaction, MonthlyReport
 from utils import parse_excel, CATEGORY_KEYWORDS
 
 bp = Blueprint('main', __name__)
 
+# Authorized users (hashed password)
+AUTHORIZED_USERS = {
+    'neeru@neerutakshak.com': generate_password_hash('Neeru@1992'),
+}
+
+
+def login_required(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('main.login'))
+        return f(*args, **kwargs)
+    return decorated
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if session.get('logged_in'):
+        return redirect(url_for('main.index'))
+
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+
+        if email in AUTHORIZED_USERS and check_password_hash(AUTHORIZED_USERS[email], password):
+            session['logged_in'] = True
+            session['user_email'] = email
+            session.permanent = True
+            return redirect(url_for('main.index'))
+        else:
+            flash('Invalid email or password.', 'error')
+
+    return render_template('login.html')
+
+
+@bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('main.login'))
+
+
 @bp.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
 
 @bp.route('/upload', methods=['POST'])
+@login_required
 def upload():
     if 'file' not in request.files:
         flash('No file selected.', 'error')
@@ -130,11 +174,13 @@ def upload():
 
 
 @bp.route('/dashboard')
+@login_required
 def dashboard():
     return render_template('dashboard.html')
 
 
 @bp.route('/api/monthly-summary')
+@login_required
 def monthly_summary():
     # Optional filters
     filter_year = request.args.get('year', type=int)
@@ -185,6 +231,7 @@ def monthly_summary():
 
 
 @bp.route('/api/available-periods')
+@login_required
 def available_periods():
     """Returns all years and months that have data, for filter dropdowns."""
     results = (
@@ -204,6 +251,7 @@ def available_periods():
 
 
 @bp.route('/api/transactions/<int:year>/<int:month>/<txn_type>')
+@login_required
 def get_transactions(year, month, txn_type):
     if txn_type not in ('credit', 'debit'):
         return jsonify({'error': 'Invalid transaction type'}), 400
@@ -233,6 +281,7 @@ def get_transactions(year, month, txn_type):
 
 
 @bp.route('/api/categories')
+@login_required
 def get_categories():
     credit_cats = list(CATEGORY_KEYWORDS['credit'].keys()) + ['Owner/Promoter Funds', 'Other Income']
     debit_cats = list(CATEGORY_KEYWORDS['debit'].keys()) + ['General Payment']
@@ -242,6 +291,7 @@ def get_categories():
 
 
 @bp.route('/api/transactions/<int:txn_id>/category', methods=['PUT'])
+@login_required
 def update_category(txn_id):
     txn = Transaction.query.get(txn_id)
     if not txn:
@@ -265,6 +315,7 @@ def update_category(txn_id):
 
 
 @bp.route('/api/monthly-report/<int:year>/<int:month>/finalize', methods=['POST'])
+@login_required
 def finalize_month(year, month):
     report = MonthlyReport.query.filter_by(year=year, month=month).first()
     if not report:
@@ -279,6 +330,7 @@ def finalize_month(year, month):
 
 
 @bp.route('/api/monthly-report/<int:year>/<int:month>/unfinalize', methods=['POST'])
+@login_required
 def unfinalize_month(year, month):
     report = MonthlyReport.query.filter_by(year=year, month=month).first()
     if not report:
@@ -292,6 +344,7 @@ def unfinalize_month(year, month):
 
 
 @bp.route('/export')
+@login_required
 def export():
     year = request.args.get('year', type=int)
     month = request.args.get('month', type=int)
